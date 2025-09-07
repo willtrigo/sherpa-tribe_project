@@ -1,0 +1,34 @@
+# Django Core
+Django==5.2.6
+djangorestframework==3.16.1
+
+# Database
+psycopg2-binary==2.9.10
+dj-database-url==3.0.1
+
+# Authentication & Security
+django-cors-headers==4.7.0
+
+# API & Filtering
+django-filter==25.1
+
+# Environment & Configuration
+python-decouple==3.8
+
+# Production Server
+gunicorn==23.0.0
+whitenoise==6.9.0
+
+# Development & Debugging
+django-extensions==4.1
+django-debug-toolbar==6.0.0
+
+# Utilities
+Pillow==11.3.0
+python-dateutil==2.9.0.post0
+pytz==2025.2
+
+# Code Quality
+flake8==7.3.0
+black==25.1.0
+isort==6.0.1
