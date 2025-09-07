@@ -32,8 +32,13 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
+      - DJANGO_PORT=${DJANGO_PORT}
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - DEFAULT_PAGE_SIZE=${DEFAULT_PAGE_SIZE}
       - MAX_PAGE_SIZE=${MAX_PAGE_SIZE}
@@ -48,10 +53,7 @@ services:
       start_period: 40s
     networks:
       - task_network
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    entrypoint: ["/app/scripts/entrypoint.sh"]
 
   nginx:
     image: nginx:alpine
