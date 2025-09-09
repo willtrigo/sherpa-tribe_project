@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Task Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            {% include 'components/sidebar.html' %}
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle">
+                        <span data-feather="calendar"></span>
+                        This week
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-header">Total Tasks</div>
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.total_tasks|default:0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-header">Completed</div>
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.completed_tasks|default:0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-header">In Progress</div>
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.in_progress_tasks|default:0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger">
+                        <div class="card-header">Overdue</div>
+                        <div class="card-body">
+                            <h4 class="card-title">{{ stats.overdue_tasks|default:0 }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Tasks -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Recent Tasks</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_tasks %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Status</th>
+                                                <th>Priority</th>
+                                                <th>Due Date</th>
+                                                <th>Assigned To</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for task in recent_tasks %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% url 'tasks:detail' task.id %}">{{ task.title }}</a>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{{ task.get_status_color }}">
+                                                        {{ task.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{{ task.get_priority_color }}">
+                                                        {{ task.get_priority_display }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ task.due_date|date:"M d, Y" }}</td>
+                                                <td>
+                                                    {% for user in task.assigned_to.all|slice:":2" %}
+                                                        <span class="badge bg-secondary">{{ user.get_full_name|default:user.username }}</span>
+                                                    {% endfor %}
+                                                    {% if task.assigned_to.count > 2 %}
+                                                        <span class="badge bg-light text-dark">+{{ task.assigned_to.count|add:"-2" }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No recent tasks found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Recent Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_activities %}
+                                {% for activity in recent_activities %}
+                                <div class="d-flex mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-{{ activity.icon }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <p class="mb-1 small">{{ activity.description }}</p>
+                                        <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No recent activity.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

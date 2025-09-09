@@ -1,0 +1,123 @@
+{% load static %}
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                   aria-current="page" href="{% url 'common:dashboard' %}">
+                    <span data-feather="home"></span>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'tasks' in request.resolver_match.namespace %}active{% endif %}" 
+                   href="{% url 'tasks:list' %}">
+                    <span data-feather="file"></span>
+                    Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'users' in request.resolver_match.namespace %}active{% endif %}" 
+                   href="{% url 'users:list' %}">
+                    <span data-feather="users"></span>
+                    Team
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="showReportsSubmenu()">
+                    <span data-feather="bar-chart-2"></span>
+                    Reports
+                    <span class="float-end">
+                        <i class="fas fa-chevron-down" id="reports-chevron"></i>
+                    </span>
+                </a>
+                <ul class="nav flex-column ms-3 submenu" id="reports-submenu" style="display: none;">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'analytics:dashboard' %}">
+                            Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'analytics:user_stats' %}">
+                            User Performance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'analytics:team_performance' %}">
+                            Team Performance
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'workflows:list' %}">
+                    <span data-feather="git-branch"></span>
+                    Workflows
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Quick Actions</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'tasks:create' %}">
+                    <span data-feather="plus-circle"></span>
+                    Create Task
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'users:profile' %}">
+                    <span data-feather="user"></span>
+                    My Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'notifications:list' %}">
+                    <span data-feather="bell"></span>
+                    Notifications
+                    {% if notification_count > 0 %}
+                        <span class="badge bg-danger rounded-pill">{{ notification_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Settings</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin:index' %}" target="_blank">
+                    <span data-feather="settings"></span>
+                    Admin Panel
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'auth:logout' %}">
+                    <span data-feather="log-out"></span>
+                    Sign out
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<script>
+function showReportsSubmenu() {
+    const submenu = document.getElementById('reports-submenu');
+    const chevron = document.getElementById('reports-chevron');
+    
+    if (submenu.style.display === 'none') {
+        submenu.style.display = 'block';
+        chevron.classList.remove('fa-chevron-down');
+        chevron.classList.add('fa-chevron-up');
+    } else {
+        submenu.style.display = 'none';
+        chevron.classList.remove('fa-chevron-up');
+        chevron.classList.add('fa-chevron-down');
+    }
+}
+</script>

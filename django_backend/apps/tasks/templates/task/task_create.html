@@ -1,0 +1,517 @@
+{% extends "tasks/base_tasks.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Create New Task - {{ block.super }}{% endblock title %}
+
+{% block extra_css %}
+    <link href="{% static 'css/task-forms.css' %}" rel="stylesheet">
+    <link href="{% static 'css/select2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
+{% endblock extra_css %}
+
+{% block breadcrumb %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'common:dashboard' %}" class="text-decoration-none">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'tasks:task-list' %}" class="text-decoration-none">
+                    <i class="fas fa-tasks"></i> Tasks
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="fas fa-plus-circle"></i> Create Task
+            </li>
+        </ol>
+    </nav>
+{% endblock breadcrumb %}
+
+{% block page_header %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-plus-circle text-primary me-2"></i>
+                Create New Task
+            </h1>
+            <p class="text-muted mb-0">Fill in the details to create a new task</p>
+        </div>
+        <div>
+            <a href="{% url 'tasks:task-list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Back to Tasks
+            </a>
+        </div>
+    </div>
+{% endblock page_header %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-primary text-white me-3">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Task Information</h5>
+                            <small class="text-muted">
+                                Fields marked with <span class="text-danger">*</span> are required
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Please correct the following errors:</strong>
+                            {% for error in form.non_field_errors %}
+                                <div class="mt-1">{{ error }}</div>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" 
+                          action="{% url 'tasks:task-create' %}" 
+                          class="needs-validation task-form" 
+                          novalidate 
+                          id="taskCreateForm"
+                          data-form-type="task-create">
+                        {% csrf_token %}
+
+                        <!-- Basic Information Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title text-uppercase text-muted mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Basic Information
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-floating mb-3">
+                                        {{ form.title|add_class:"form-control"|attr:"placeholder:Enter task title" }}
+                                        <label for="{{ form.title.id_for_label }}" class="required-field">
+                                            <i class="fas fa-heading me-1"></i>
+                                            Title
+                                        </label>
+                                        {% if form.title.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.title.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Provide a clear and concise title for the task</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-floating mb-3">
+                                        {{ form.priority|add_class:"form-select" }}
+                                        <label for="{{ form.priority.id_for_label }}" class="required-field">
+                                            <i class="fas fa-exclamation me-1"></i>
+                                            Priority
+                                        </label>
+                                        {% if form.priority.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.priority.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label required-field">
+                                    <i class="fas fa-align-left me-1"></i>
+                                    Description
+                                </label>
+                                {{ form.description|add_class:"form-control"|attr:"rows:4"|attr:"placeholder:Provide detailed description of the task..." }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <small>Include all relevant details, requirements, and expectations</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assignment & Classification Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title text-uppercase text-muted mb-3">
+                                <i class="fas fa-users me-2"></i>
+                                Assignment & Classification
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.assigned_to.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user-check me-1"></i>
+                                            Assigned To
+                                        </label>
+                                        {{ form.assigned_to|add_class:"form-select select2-multiple" }}
+                                        {% if form.assigned_to.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.assigned_to.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Select one or multiple team members</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.tags.id_for_label }}" class="form-label">
+                                            <i class="fas fa-tags me-1"></i>
+                                            Tags
+                                        </label>
+                                        {{ form.tags|add_class:"form-select select2-multiple" }}
+                                        {% if form.tags.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.tags.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Add relevant tags for categorization</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        {{ form.status|add_class:"form-select" }}
+                                        <label for="{{ form.status.id_for_label }}">
+                                            <i class="fas fa-flag me-1"></i>
+                                            Initial Status
+                                        </label>
+                                        {% if form.status.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.status.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.parent_task.id_for_label }}" class="form-label">
+                                            <i class="fas fa-sitemap me-1"></i>
+                                            Parent Task
+                                        </label>
+                                        {{ form.parent_task|add_class:"form-select select2-single" }}
+                                        {% if form.parent_task.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.parent_task.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Optional: Select a parent task if this is a subtask</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline & Estimation Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title text-uppercase text-muted mb-3">
+                                <i class="fas fa-clock me-2"></i>
+                                Timeline & Estimation
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        {{ form.due_date|add_class:"form-control datepicker" }}
+                                        <label for="{{ form.due_date.id_for_label }}" class="required-field">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Due Date
+                                        </label>
+                                        {% if form.due_date.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.due_date.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        {{ form.estimated_hours|add_class:"form-control"|attr:"step:0.5"|attr:"min:0" }}
+                                        <label for="{{ form.estimated_hours.id_for_label }}" class="required-field">
+                                            <i class="fas fa-hourglass-half me-1"></i>
+                                            Estimated Hours
+                                        </label>
+                                        {% if form.estimated_hours.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.estimated_hours.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Estimated time to complete the task</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Metadata Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title text-uppercase text-muted mb-3">
+                                <i class="fas fa-cog me-2"></i>
+                                Additional Information
+                            </h6>
+
+                            <div class="mb-3">
+                                <label for="{{ form.metadata.id_for_label }}" class="form-label">
+                                    <i class="fas fa-code me-1"></i>
+                                    Metadata (JSON)
+                                </label>
+                                {{ form.metadata|add_class:"form-control"|attr:"rows:3"|attr:"placeholder:Enter JSON metadata (optional)" }}
+                                {% if form.metadata.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.metadata.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <small>Optional: Additional structured data in JSON format</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions border-top pt-4">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="button" 
+                                                    class="btn btn-outline-secondary me-2" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#previewModal">
+                                                <i class="fas fa-eye me-1"></i>
+                                                Preview
+                                            </button>
+                                        </div>
+                                        
+                                        <div>
+                                            <a href="{% url 'tasks:task-list' %}" 
+                                               class="btn btn-light me-2"
+                                               data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">
+                                                <i class="fas fa-times me-1"></i>
+                                                Cancel
+                                            </a>
+                                            
+                                            <button type="submit" 
+                                                    name="action" 
+                                                    value="save_draft" 
+                                                    class="btn btn-outline-primary me-2">
+                                                <i class="fas fa-save me-1"></i>
+                                                Save as Draft
+                                            </button>
+                                            
+                                            <button type="submit" 
+                                                    name="action" 
+                                                    value="create" 
+                                                    class="btn btn-primary">
+                                                <i class="fas fa-plus-circle me-1"></i>
+                                                Create Task
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class="fas fa-eye me-2"></i>
+                        Task Preview
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="taskPreviewContent">
+                    <!-- Preview content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block extra_js %}
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script src="{% static 'js/datepicker.min.js' %}"></script>
+    <script src="{% static 'js/task-forms.js' %}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            'use strict';
+
+            const TaskCreateForm = {
+                form: document.getElementById('taskCreateForm'),
+                
+                init() {
+                    this.initializeFormValidation();
+                    this.initializeSelect2();
+                    this.initializeDatePicker();
+                    this.initializePreview();
+                    this.initializeUnsavedChangesWarning();
+                },
+
+                initializeFormValidation() {
+                    if (!this.form) return;
+
+                    this.form.addEventListener('submit', (event) => {
+                        if (!this.form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        this.form.classList.add('was-validated');
+                    });
+                },
+
+                initializeSelect2() {
+                    $('.select2-multiple').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Select options...',
+                        allowClear: true,
+                        width: '100%'
+                    });
+
+                    $('.select2-single').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Select an option...',
+                        allowClear: true,
+                        width: '100%'
+                    });
+                },
+
+                initializeDatePicker() {
+                    $('.datepicker').datepicker({
+                        format: 'yyyy-mm-dd',
+                        autoclose: true,
+                        todayHighlight: true,
+                        startDate: new Date()
+                    });
+                },
+
+                initializePreview() {
+                    const previewBtn = document.querySelector('[data-bs-target="#previewModal"]');
+                    if (!previewBtn) return;
+
+                    previewBtn.addEventListener('click', () => {
+                        this.generatePreview();
+                    });
+                },
+
+                generatePreview() {
+                    const formData = new FormData(this.form);
+                    const previewContent = document.getElementById('taskPreviewContent');
+                    
+                    const title = formData.get('title') || 'Untitled Task';
+                    const description = formData.get('description') || 'No description provided';
+                    const priority = formData.get('priority') || 'Not specified';
+                    const dueDate = formData.get('due_date') || 'Not specified';
+                    const estimatedHours = formData.get('estimated_hours') || 'Not specified';
+
+                    previewContent.innerHTML = `
+                        <div class="task-preview">
+                            <h4>${title}</h4>
+                            <p><strong>Description:</strong> ${description}</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Priority:</strong> ${priority}</p>
+                                    <p><strong>Due Date:</strong> ${dueDate}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Estimated Hours:</strong> ${estimatedHours}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                initializeUnsavedChangesWarning() {
+                    let formChanged = false;
+                    
+                    this.form.addEventListener('input', () => {
+                        formChanged = true;
+                    });
+
+                    window.addEventListener('beforeunload', (event) => {
+                        if (formChanged) {
+                            event.preventDefault();
+                            event.returnValue = '';
+                        }
+                    });
+
+                    // Reset flag on successful form submission
+                    this.form.addEventListener('submit', () => {
+                        formChanged = false;
+                    });
+                }
+            };
+
+            // Initialize the form
+            TaskCreateForm.init();
+
+            // Handle confirmation dialogs
+            document.querySelectorAll('[data-confirm]').forEach(element => {
+                element.addEventListener('click', function(event) {
+                    if (!confirm(this.getAttribute('data-confirm'))) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock extra_js %}

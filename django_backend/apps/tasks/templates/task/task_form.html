@@ -1,0 +1,682 @@
+{% extends "common/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Task: {{ form.instance.title }}{% else %}Create New Task{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/forms.css' %}" rel="stylesheet">
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .form-header {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-header h1 {
+            color: #343a40;
+            font-size: 1.75rem;
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #dc3545;
+        }
+        
+        .form-text {
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -0.75rem;
+        }
+        
+        .form-col {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 0.75rem;
+        }
+        
+        .form-col-full {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 0 0.75rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .priority-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .priority-low { background-color: #28a745; }
+        .priority-medium { background-color: #ffc107; }
+        .priority-high { background-color: #fd7e14; }
+        .priority-critical { background-color: #dc3545; }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pending { background-color: #f8f9fa; color: #6c757d; }
+        .status-in-progress { background-color: #cce5ff; color: #004085; }
+        .status-review { background-color: #fff3cd; color: #856404; }
+        .status-completed { background-color: #d4edda; color: #155724; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+        
+        .metadata-section {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        .metadata-section h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #495057;
+        }
+        
+        @media (max-width: 768px) {
+            .form-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .form-col {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        .loading-spinner {
+            display: none;
+            margin-left: 0.5rem;
+        }
+        
+        .form-control:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>
+            {% if form.instance.pk %}
+                <i class="fas fa-edit"></i>
+                Edit Task: {{ form.instance.title|truncatechars:50 }}
+            {% else %}
+                <i class="fas fa-plus-circle"></i>
+                Create New Task
+            {% endif %}
+        </h1>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" id="taskForm" novalidate>
+        {% csrf_token %}
+        
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}" class="form-label required">
+                    Task Title
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.title.errors.0 }}
+                    </div>
+                {% endif %}
+                <small class="form-text">Enter a clear, descriptive title for the task</small>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}" class="form-label">
+                    Description
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.description.errors.0 }}
+                    </div>
+                {% endif %}
+                <small class="form-text">Provide detailed information about the task requirements and expectations</small>
+            </div>
+        </div>
+
+        <!-- Status and Priority Section -->
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.status.id_for_label }}" class="form-label required">
+                        Status
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.status.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.priority.id_for_label }}" class="form-label required">
+                        Priority
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.priority.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                        Due Date
+                    </label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.due_date.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text">Expected completion date</small>
+                </div>
+            </div>
+            
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.estimated_hours.id_for_label }}" class="form-label">
+                        Estimated Hours
+                    </label>
+                    {{ form.estimated_hours }}
+                    {% if form.estimated_hours.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.estimated_hours.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text">Time estimate in hours</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Section -->
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.assigned_to.id_for_label }}" class="form-label">
+                        Assigned To
+                    </label>
+                    {{ form.assigned_to }}
+                    {% if form.assigned_to.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.assigned_to.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text">Select team members to assign this task</small>
+                </div>
+            </div>
+            
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="{{ form.tags.id_for_label }}" class="form-label">
+                        Tags
+                    </label>
+                    {{ form.tags }}
+                    {% if form.tags.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.tags.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text">Add relevant tags for categorization</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchy Section -->
+        {% if form.parent_task %}
+        <div class="form-group">
+            <label for="{{ form.parent_task.id_for_label }}" class="form-label">
+                Parent Task
+            </label>
+            {{ form.parent_task }}
+            {% if form.parent_task.errors %}
+                <div class="invalid-feedback">
+                    {{ form.parent_task.errors.0 }}
+                </div>
+            {% endif %}
+            <small class="form-text">Link this task as a subtask to another task</small>
+        </div>
+        {% endif %}
+
+        <!-- Time Tracking Section -->
+        {% if form.instance.pk and form.actual_hours %}
+        <div class="form-group">
+            <label for="{{ form.actual_hours.id_for_label }}" class="form-label">
+                Actual Hours Worked
+            </label>
+            {{ form.actual_hours }}
+            {% if form.actual_hours.errors %}
+                <div class="invalid-feedback">
+                    {{ form.actual_hours.errors.0 }}
+                </div>
+            {% endif %}
+            <small class="form-text">Record actual time spent on this task</small>
+        </div>
+        {% endif %}
+
+        <!-- Metadata Section -->
+        {% if form.metadata %}
+        <div class="metadata-section">
+            <h3>
+                <i class="fas fa-cog"></i>
+                Additional Metadata
+            </h3>
+            <div class="form-group">
+                <label for="{{ form.metadata.id_for_label }}" class="form-label">
+                    Custom Properties (JSON)
+                </label>
+                {{ form.metadata }}
+                {% if form.metadata.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.metadata.errors.0 }}
+                    </div>
+                {% endif %}
+                <small class="form-text">Enter additional properties as JSON object. Example: {"urgency": "high", "client": "ACME Corp"}</small>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Archive Section -->
+        {% if form.instance.pk and form.is_archived %}
+        <div class="form-group">
+            <div class="form-check">
+                {{ form.is_archived }}
+                <label class="form-check-label" for="{{ form.is_archived.id_for_label }}">
+                    Archive this task
+                </label>
+            </div>
+            {% if form.is_archived.errors %}
+                <div class="invalid-feedback">
+                    {{ form.is_archived.errors.0 }}
+                </div>
+            {% endif %}
+            <small class="form-text">Archived tasks are hidden from active task lists</small>
+        </div>
+        {% endif %}
+
+        <!-- Form Actions -->
+        <div class="btn-group">
+            <a href="{% url 'tasks:task-list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Cancel
+            </a>
+            
+            {% if form.instance.pk %}
+                <a href="{% url 'tasks:task-detail' form.instance.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-eye"></i>
+                    View Task
+                </a>
+                
+                {% if perms.tasks.delete_task %}
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+                {% endif %}
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-save"></i>
+                {% if form.instance.pk %}Update Task{% else %}Create Task{% endif %}
+                <span class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if form.instance.pk and perms.tasks.delete_task %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this task?</p>
+                <p><strong>{{ form.instance.title }}</strong></p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'tasks:task-delete' form.instance.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('taskForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingSpinner = submitBtn.querySelector('.loading-spinner');
+    
+    // Form validation enhancement
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    // Real-time validation
+    requiredFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        field.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateField(this);
+            }
+        });
+    });
+    
+    // Form submission handling
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate all required fields
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+        
+        // Validate JSON metadata if present
+        const metadataField = form.querySelector('[name="metadata"]');
+        if (metadataField && metadataField.value.trim()) {
+            if (!validateJSON(metadataField)) {
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        loadingSpinner.style.display = 'inline-block';
+    });
+    
+    // Priority indicator update
+    const priorityField = form.querySelector('[name="priority"]');
+    if (priorityField) {
+        updatePriorityIndicator(priorityField);
+        priorityField.addEventListener('change', function() {
+            updatePriorityIndicator(this);
+        });
+    }
+    
+    // Status badge update
+    const statusField = form.querySelector('[name="status"]');
+    if (statusField) {
+        updateStatusBadge(statusField);
+        statusField.addEventListener('change', function() {
+            updateStatusBadge(this);
+        });
+    }
+    
+    // Auto-resize textarea
+    const textareas = form.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        autoResizeTextarea(textarea);
+        textarea.addEventListener('input', function() {
+            autoResizeTextarea(this);
+        });
+    });
+    
+    function validateField(field) {
+        const value = field.value.trim();
+        let isValid = true;
+        
+        // Clear previous validation state
+        field.classList.remove('is-invalid');
+        const feedback = field.parentElement.querySelector('.invalid-feedback');
+        if (feedback) {
+            feedback.textContent = '';
+        }
+        
+        // Required field validation
+        if (field.hasAttribute('required') && !value) {
+            showFieldError(field, 'This field is required.');
+            isValid = false;
+        }
+        
+        // Specific field validations
+        if (field.name === 'estimated_hours' && value && (isNaN(value) || parseFloat(value) < 0)) {
+            showFieldError(field, 'Please enter a valid positive number.');
+            isValid = false;
+        }
+        
+        if (field.name === 'actual_hours' && value && (isNaN(value) || parseFloat(value) < 0)) {
+            showFieldError(field, 'Please enter a valid positive number.');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    function validateJSON(field) {
+        const value = field.value.trim();
+        if (!value) return true;
+        
+        try {
+            JSON.parse(value);
+            field.classList.remove('is-invalid');
+            return true;
+        } catch (e) {
+            showFieldError(field, 'Please enter valid JSON.');
+            return false;
+        }
+    }
+    
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        let feedback = field.parentElement.querySelector('.invalid-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            field.parentElement.appendChild(feedback);
+        }
+        feedback.textContent = message;
+    }
+    
+    function updatePriorityIndicator(field) {
+        const value = field.value.toLowerCase();
+        const indicator = field.parentElement.querySelector('.priority-indicator');
+        
+        if (!indicator) {
+            const newIndicator = document.createElement('span');
+            newIndicator.className = 'priority-indicator';
+            field.parentElement.querySelector('.form-label').appendChild(newIndicator);
+        }
+        
+        const indicatorElement = field.parentElement.querySelector('.priority-indicator');
+        indicatorElement.className = `priority-indicator priority-${value}`;
+    }
+    
+    function updateStatusBadge(field) {
+        const value = field.value.toLowerCase().replace(' ', '-');
+        let badge = field.parentElement.querySelector('.status-badge');
+        
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'status-badge';
+            field.parentElement.appendChild(badge);
+        }
+        
+        badge.className = `status-badge status-${value}`;
+        badge.textContent = field.options[field.selectedIndex].text;
+    }
+    
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+});
+</script>
+{% endblock %}

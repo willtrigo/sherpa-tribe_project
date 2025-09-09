@@ -7,13 +7,21 @@ psycopg2-binary==2.9.10
 dj-database-url==3.0.1
 
 # Authentication & Security
+djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.7.0
+
+# Celery & Redis
+celery==5.5.3
+redis==6.0.0
+django-celery-beat==2.8.1
+django-celery-results==2.6.0
 
 # API & Filtering
 django-filter==25.1
 
 # Environment & Configuration
 python-decouple==3.8
+python-dotenv==1.1.1
 
 # Production Server
 gunicorn==23.0.0
@@ -27,6 +35,11 @@ django-debug-toolbar==6.0.0
 Pillow==11.3.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
+
+# Testing
+pytest==8.4.2
+pytest-django==4.11.1
+factory-boy==3.3.3
 
 # Code Quality
 flake8==7.3.0

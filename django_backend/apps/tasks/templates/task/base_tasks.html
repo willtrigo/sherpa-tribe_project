@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="{% block meta_description %}Enterprise Task Management System{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}tasks, management, enterprise, productivity{% endblock %}">
+    
+    <title>{% block title %}Task Management{% endblock %} | Enterprise TMS</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{% load static %}{% static 'css/bootstrap.min.css' %}" as="style">
+    <link rel="preload" href="{% load static %}{% static 'css/main.css' %}" as="style">
+    
+    <!-- Critical CSS -->
+    <link href="{% load static %}{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% load static %}{% static 'css/dashboard.css' %}" rel="stylesheet">
+    <link href="{% load static %}{% static 'css/main.css' %}" rel="stylesheet">
+    
+    <!-- Additional CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% load static %}{% static 'images/favicon.png' %}">
+    
+    <!-- CSRF Token for AJAX requests -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <!-- Custom CSS variables -->
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --sidebar-width: 280px;
+            --header-height: 60px;
+        }
+        
+        .task-priority-high { color: var(--danger-color); }
+        .task-priority-medium { color: var(--warning-color); }
+        .task-priority-low { color: var(--success-color); }
+        
+        .task-status-todo { color: var(--secondary-color); }
+        .task-status-in-progress { color: var(--info-color); }
+        .task-status-completed { color: var(--success-color); }
+        .task-status-blocked { color: var(--danger-color); }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            min-height: calc(100vh - var(--header-height));
+            background: var(--light-color);
+            border-right: 1px solid var(--secondary-color);
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 1000;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column h-100" data-bs-theme="{% if user.profile.theme == 'dark' %}dark{% else %}light{% endif %}">
+    <!-- Skip to main content link for accessibility -->
+    <a class="visually-hidden-focusable btn btn-primary position-absolute top-0 start-0 m-2" href="#main-content">
+        Skip to main content
+    </a>
+
+    <!-- Header Navigation -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm" style="height: var(--header-height);">
+        <div class="container-fluid">
+            <!-- Mobile menu toggle -->
+            <button class="btn btn-outline-light d-lg-none me-2" 
+                    type="button" 
+                    data-bs-toggle="offcanvas" 
+                    data-bs-target="#sidebar" 
+                    aria-controls="sidebar"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Brand -->
+            <a class="navbar-brand fw-bold" href="{% url 'tasks:task_list' %}">
+                <img src="{% load static %}{% static 'images/logo.png' %}" 
+                     alt="TMS Logo" 
+                     height="30" 
+                     class="d-inline-block align-text-top me-2">
+                Enterprise TMS
+            </a>
+            
+            <!-- Search Form -->
+            <form class="d-flex flex-grow-1 mx-3" method="GET" action="{% url 'tasks:task_list' %}" role="search">
+                <div class="input-group">
+                    <input class="form-control" 
+                           type="search" 
+                           name="search" 
+                           placeholder="Search tasks, users, tags..." 
+                           aria-label="Search"
+                           value="{{ request.GET.search|default:'' }}"
+                           autocomplete="off">
+                    <button class="btn btn-outline-light" type="submit" aria-label="Execute search">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <!-- User Menu -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" 
+                        type="button" 
+                        id="userMenuDropdown" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false"
+                        aria-label="User menu">
+                    <i class="fas fa-user-circle me-1" aria-hidden="true"></i>
+                    {{ user.get_full_name|default:user.username }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'users:profile' %}">
+                            <i class="fas fa-user me-2" aria-hidden="true"></i>Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'users:settings' %}">
+                            <i class="fas fa-cog me-2" aria-hidden="true"></i>Settings
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="POST" action="{% url 'auth:logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="d-flex flex-grow-1" style="margin-top: var(--header-height);">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar bg-light border-end d-none d-lg-block" id="sidebar">
+            <div class="p-3">
+                <h6 class="text-muted text-uppercase fw-bold mb-3">Navigation</h6>
+                
+                <!-- Main Navigation -->
+                <ul class="nav nav-pills flex-column mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'common:dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2" aria-hidden="true"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'tasks' in request.resolver_match.namespace %}active{% endif %}" 
+                           href="{% url 'tasks:task_list' %}">
+                            <i class="fas fa-tasks me-2" aria-hidden="true"></i>All Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_tasks' %}active{% endif %}" 
+                           href="{% url 'tasks:my_tasks' %}">
+                            <i class="fas fa-user-tasks me-2" aria-hidden="true"></i>My Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'team_tasks' %}active{% endif %}" 
+                           href="{% url 'tasks:team_tasks' %}">
+                            <i class="fas fa-users me-2" aria-hidden="true"></i>Team Tasks
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Task Filters -->
+                <h6 class="text-muted text-uppercase fw-bold mb-3">Quick Filters</h6>
+                <ul class="nav nav-pills flex-column mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{% url 'tasks:task_list' %}?status=overdue">
+                            <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Overdue
+                            {% if overdue_count %}
+                                <span class="badge bg-danger ms-auto">{{ overdue_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" href="{% url 'tasks:task_list' %}?priority=high">
+                            <i class="fas fa-arrow-up me-2" aria-hidden="true"></i>High Priority
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-info" href="{% url 'tasks:task_list' %}?status=in-progress">
+                            <i class="fas fa-play me-2" aria-hidden="true"></i>In Progress
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-success" href="{% url 'tasks:task_list' %}?due_date=today">
+                            <i class="fas fa-calendar-day me-2" aria-hidden="true"></i>Due Today
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Actions -->
+                <h6 class="text-muted text-uppercase fw-bold mb-3">Actions</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2" aria-hidden="true"></i>New Task
+                    </a>
+                    <a href="{% url 'tasks:bulk_actions' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-edit me-2" aria-hidden="true"></i>Bulk Actions
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Mobile Sidebar Overlay -->
+        <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="sidebarLabel">Navigation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <!-- Mobile navigation content (duplicate of desktop sidebar) -->
+                <ul class="nav nav-pills flex-column mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'common:dashboard' %}" data-bs-dismiss="offcanvas">
+                            <i class="fas fa-tachometer-alt me-2" aria-hidden="true"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'tasks' in request.resolver_match.namespace %}active{% endif %}" 
+                           href="{% url 'tasks:task_list' %}" data-bs-dismiss="offcanvas">
+                            <i class="fas fa-tasks me-2" aria-hidden="true"></i>All Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tasks:task_create' %}" data-bs-dismiss="offcanvas">
+                            <i class="fas fa-plus me-2" aria-hidden="true"></i>New Task
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <main class="main-content flex-grow-1" id="main-content" role="main">
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'common:dashboard' %}">
+                            <i class="fas fa-home" aria-hidden="true"></i>
+                            <span class="visually-hidden">Home</span>
+                        </a>
+                    </li>
+                    {% block breadcrumb_items %}
+                        <li class="breadcrumb-item active" aria-current="page">Tasks</li>
+                    {% endblock %}
+                </ol>
+            </nav>
+            
+            <!-- Alert Messages -->
+            {% if messages %}
+                <div class="alert-container mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" 
+                             role="alert"
+                             aria-live="polite">
+                            <strong>
+                                {% if message.tags == 'error' %}
+                                    <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Error:
+                                {% elif message.tags == 'success' %}
+                                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i>Success:
+                                {% elif message.tags == 'warning' %}
+                                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>Warning:
+                                {% else %}
+                                    <i class="fas fa-info-circle me-2" aria-hidden="true"></i>Info:
+                                {% endif %}
+                            </strong>
+                            {{ message }}
+                            <button type="button" 
+                                    class="btn-close" 
+                                    data-bs-dismiss="alert" 
+                                    aria-label="Close alert">
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">{% block page_title %}Tasks{% endblock %}</h1>
+                    <p class="text-muted mb-0">{% block page_description %}Manage your tasks efficiently{% endblock %}</p>
+                </div>
+                <div>
+                    {% block page_actions %}
+                        <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2" aria-hidden="true"></i>New Task
+                        </a>
+                    {% endblock %}
+                </div>
+            </div>
+            
+            <!-- Main Content Block -->
+            <div class="content-wrapper">
+                {% block content %}
+                    <!-- Child templates will override this block -->
+                {% endblock %}
+            </div>
+            
+            <!-- Additional Content Blocks -->
+            {% block extra_content %}{% endblock %}
+        </main>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" 
+         style="background: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-primary" role="status" aria-label="Loading">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-auto py-3 bg-light border-top">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span class="text-muted">© {% now "Y" %} Enterprise Task Management System</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        Version 1.0.0 | 
+                        <a href="{% url 'common:help' %}" class="text-decoration-none">Help</a> |
+                        <a href="{% url 'common:privacy' %}" class="text-decoration-none">Privacy</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="{% load static %}{% static 'js/bootstrap.min.js' %}" defer></script>
+    <script src="{% load static %}{% static 'js/htmx.min.js' %}" defer></script>
+    <script src="{% load static %}{% static 'js/main.js' %}" defer></script>
+    
+    <!-- Additional JavaScript -->
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Inline Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // CSRF token configuration for AJAX requests
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Configure HTMX headers
+            if (typeof htmx !== 'undefined') {
+                document.body.addEventListener('htmx:configRequest', function(event) {
+                    event.detail.headers['X-CSRFToken'] = csrfToken;
+                });
+                
+                // Loading states
+                document.body.addEventListener('htmx:beforeRequest', function() {
+                    document.getElementById('loading-overlay').classList.remove('d-none');
+                });
+                
+                document.body.addEventListener('htmx:afterRequest', function() {
+                    document.getElementById('loading-overlay').classList.add('d-none');
+                });
+            }
+            
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                if (!alert.classList.contains('alert-danger')) {
+                    setTimeout(function() {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }, 5000);
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(event) {
+                // Alt + N = New Task
+                if (event.altKey && event.key === 'n') {
+                    event.preventDefault();
+                    window.location.href = "{% url 'tasks:task_create' %}";
+                }
+                
+                // Alt + S = Search focus
+                if (event.altKey && event.key === 's') {
+                    event.preventDefault();
+                    document.querySelector('input[name="search"]').focus();
+                }
+                
+                // Escape = Close modals
+                if (event.key === 'Escape') {
+                    const openModals = document.querySelectorAll('.modal.show');
+                    openModals.forEach(function(modal) {
+                        bootstrap.Modal.getInstance(modal).hide();
+                    });
+                }
+            });
+        });
+        
+        // Utility functions
+        window.TaskManagement = {
+            showLoading: function() {
+                document.getElementById('loading-overlay').classList.remove('d-none');
+            },
+            
+            hideLoading: function() {
+                document.getElementById('loading-overlay').classList.add('d-none');
+            },
+            
+            showAlert: function(message, type = 'info') {
+                const alertContainer = document.querySelector('.alert-container') || 
+                                     document.querySelector('.main-content');
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                alertContainer.insertAdjacentHTML('afterbegin', alertHtml);
+            }
+        };
+    </script>
+    
+    {% block inline_js %}{% endblock %}
+</body>
+</html>

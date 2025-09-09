@@ -1,0 +1,609 @@
+{% extends "authentication/base_auth.html" %}
+{% load static %}
+
+{% block title %}Login - Task Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --primary-hover: #1d4ed8;
+        --danger-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --border-radius: 0.5rem;
+        --border-radius-lg: 0.75rem;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.5;
+        color: var(--gray-900);
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 28rem;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: 2.5rem 2rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.025em;
+    }
+
+    .login-subtitle {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: var(--danger-color);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+        transition: all 0.2s ease-in-out;
+        background-color: white;
+        color: var(--gray-900);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    }
+
+    .form-input:invalid {
+        border-color: var(--danger-color);
+    }
+
+    .form-input:invalid:focus {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 3px rgb(220 38 38 / 0.1);
+    }
+
+    .form-input::placeholder {
+        color: var(--gray-400);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        text-decoration: none;
+        min-height: 2.75rem;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .form-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .form-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: color 0.2s ease-in-out;
+    }
+
+    .form-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-left: 4px solid;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        border-left-color: var(--danger-color);
+        color: #991b1b;
+    }
+
+    .alert-success {
+        background-color: #f0fdf4;
+        border-left-color: var(--success-color);
+        color: #166534;
+    }
+
+    .alert-warning {
+        background-color: #fffbeb;
+        border-left-color: var(--warning-color);
+        color: #92400e;
+    }
+
+    .alert-info {
+        background-color: #eff6ff;
+        border-left-color: var(--primary-color);
+        color: #1e40af;
+    }
+
+    .field-errors {
+        margin-top: 0.25rem;
+    }
+
+    .field-error {
+        display: block;
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-top: 0.25rem;
+    }
+
+    .remember-me-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-input {
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.5rem;
+        accent-color: var(--primary-color);
+    }
+
+    .checkbox-label {
+        font-size: 0.875rem;
+        color: var(--gray-700);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .forgot-password-link {
+        font-size: 0.875rem;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .forgot-password-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .btn:disabled .loading-spinner {
+        display: inline-block;
+    }
+
+    @media (max-width: 640px) {
+        .login-container {
+            padding: 1rem 0.5rem;
+        }
+        
+        .login-card {
+            padding: 2rem 1.5rem;
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .form-input {
+            border-width: 2px;
+        }
+        
+        .btn {
+            border-width: 2px;
+        }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Please sign in to your Task Management account</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'authentication:login' %}" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label{% if form.username.field.required %} required{% endif %}">
+                    {% if form.username.field.label %}{{ form.username.field.label }}{% else %}Username{% endif %}
+                </label>
+                <input
+                    type="{{ form.username.field.widget.input_type|default:'text' }}"
+                    id="{{ form.username.id_for_label }}"
+                    name="{{ form.username.html_name }}"
+                    class="form-input{% if form.username.errors %} is-invalid{% endif %}"
+                    value="{{ form.username.value|default:'' }}"
+                    placeholder="Enter your username"
+                    autocomplete="username"
+                    {% if form.username.field.required %}required{% endif %}
+                    {% if form.username.field.max_length %}maxlength="{{ form.username.field.max_length }}"{% endif %}
+                >
+                {% if form.username.errors %}
+                    <div class="field-errors">
+                        {% for error in form.username.errors %}
+                            <span class="field-error" role="alert">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if form.username.help_text %}
+                    <small class="form-help">{{ form.username.help_text }}</small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}" class="form-label{% if form.password.field.required %} required{% endif %}">
+                    {% if form.password.field.label %}{{ form.password.field.label }}{% else %}Password{% endif %}
+                </label>
+                <input
+                    type="password"
+                    id="{{ form.password.id_for_label }}"
+                    name="{{ form.password.html_name }}"
+                    class="form-input{% if form.password.errors %} is-invalid{% endif %}"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    {% if form.password.field.required %}required{% endif %}
+                    {% if form.password.field.max_length %}maxlength="{{ form.password.field.max_length }}"{% endif %}
+                >
+                {% if form.password.errors %}
+                    <div class="field-errors">
+                        {% for error in form.password.errors %}
+                            <span class="field-error" role="alert">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if form.remember_me %}
+                <div class="remember-me-group">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="{{ form.remember_me.id_for_label }}"
+                            name="{{ form.remember_me.html_name }}"
+                            class="checkbox-input"
+                            {% if form.remember_me.value %}checked{% endif %}
+                        >
+                        <label for="{{ form.remember_me.id_for_label }}" class="checkbox-label">
+                            Remember me
+                        </label>
+                    </div>
+                    <a href="{% url 'authentication:password_reset' %}" class="forgot-password-link">
+                        Forgot password?
+                    </a>
+                </div>
+            {% endif %}
+
+            {% if 'next' in request.GET %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary" id="login-btn">
+                <span class="loading-spinner"></span>
+                <span class="btn-text">Sign In</span>
+            </button>
+        </form>
+
+        <div class="form-footer">
+            <p>
+                Don't have an account? 
+                <a href="{% url 'authentication:register' %}" class="form-link">
+                    Create one here
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    const loginForm = document.querySelector('form');
+    const loginBtn = document.getElementById('login-btn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const loadingSpinner = loginBtn.querySelector('.loading-spinner');
+
+    // Form submission handling
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', function(e) {
+            // Basic client-side validation
+            const username = document.getElementById('{{ form.username.id_for_label }}');
+            const password = document.getElementById('{{ form.password.id_for_label }}');
+
+            let isValid = true;
+
+            // Clear previous custom validation messages
+            clearCustomValidation();
+
+            // Username validation
+            if (!username.value.trim()) {
+                showFieldError(username, 'Username is required');
+                isValid = false;
+            } else if (username.value.length < 3) {
+                showFieldError(username, 'Username must be at least 3 characters');
+                isValid = false;
+            }
+
+            // Password validation
+            if (!password.value) {
+                showFieldError(password, 'Password is required');
+                isValid = false;
+            } else if (password.value.length < 8) {
+                showFieldError(password, 'Password must be at least 8 characters');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                return;
+            }
+
+            // Show loading state
+            loginBtn.disabled = true;
+            btnText.textContent = 'Signing In...';
+            loadingSpinner.style.display = 'inline-block';
+
+            // Re-enable after timeout (fallback)
+            setTimeout(function() {
+                if (loginBtn.disabled) {
+                    loginBtn.disabled = false;
+                    btnText.textContent = 'Sign In';
+                    loadingSpinner.style.display = 'none';
+                }
+            }, 10000);
+        });
+    }
+
+    // Real-time validation
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(function(input) {
+        input.addEventListener('blur', validateField);
+        input.addEventListener('input', function() {
+            // Clear error state while typing
+            if (this.classList.contains('is-invalid')) {
+                this.classList.remove('is-invalid');
+                const errorElements = this.parentNode.querySelectorAll('.custom-error');
+                errorElements.forEach(function(el) {
+                    el.remove();
+                });
+            }
+        });
+    });
+
+    function validateField(e) {
+        const field = e.target;
+        const value = field.value.trim();
+        let isValid = true;
+        let errorMessage = '';
+
+        // Clear previous custom errors
+        clearFieldCustomValidation(field);
+
+        if (field.name === 'username') {
+            if (!value) {
+                errorMessage = 'Username is required';
+                isValid = false;
+            } else if (value.length < 3) {
+                errorMessage = 'Username must be at least 3 characters';
+                isValid = false;
+            }
+        } else if (field.name === 'password') {
+            if (!value) {
+                errorMessage = 'Password is required';
+                isValid = false;
+            } else if (value.length < 8) {
+                errorMessage = 'Password must be at least 8 characters';
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            showFieldError(field, errorMessage);
+        }
+    }
+
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error custom-error';
+        errorSpan.setAttribute('role', 'alert');
+        errorSpan.textContent = message;
+        
+        const fieldErrors = field.parentNode.querySelector('.field-errors');
+        if (fieldErrors) {
+            fieldErrors.appendChild(errorSpan);
+        } else {
+            field.parentNode.appendChild(errorSpan);
+        }
+    }
+
+    function clearCustomValidation() {
+        const customErrors = document.querySelectorAll('.custom-error');
+        customErrors.forEach(function(error) {
+            error.remove();
+        });
+        
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        invalidFields.forEach(function(field) {
+            field.classList.remove('is-invalid');
+        });
+    }
+
+    function clearFieldCustomValidation(field) {
+        const customErrors = field.parentNode.querySelectorAll('.custom-error');
+        customErrors.forEach(function(error) {
+            error.remove();
+        });
+        field.classList.remove('is-invalid');
+    }
+
+    // Auto-focus first empty field
+    const firstInput = document.querySelector('.form-input');
+    if (firstInput && !firstInput.value) {
+        firstInput.focus();
+    }
+
+    // Keyboard navigation improvements
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.type !== 'submit') {
+            const form = e.target.closest('form');
+            if (form) {
+                const inputs = Array.from(form.querySelectorAll('input, select, textarea'));
+                const index = inputs.indexOf(e.target);
+                if (index > -1 && index < inputs.length - 1) {
+                    e.preventDefault();
+                    inputs[index + 1].focus();
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}
