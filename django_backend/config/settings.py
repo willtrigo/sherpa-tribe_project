@@ -11,11 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-import dj_database_url
-from pathlib import Path
 from datetime import timedelta
-from decouple import Csv, config
+from pathlib import Path
+
 from celery.schedules import crontab
+import dj_database_url
+from decouple import Csv, config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
 
     'rest_framework',
     'rest_framework_simplejwt',
@@ -95,11 +97,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = config(
-    'DATABASE_URL',
-    default=f"postgresql://postgres:postgres123@localhost:5432/task_management"
-)
+def get_database_url() -> str:
+    """Get database URL with proper validation."""
+    url = config(
+        'DATABASE_URL',
+        default='postgresql://postgres:postgres123@localhost:5432/task_management'
+    )
 
+    if not isinstance(url, str):
+        raise ValueError(f'DATABASE_URL must be a string, got {type(url).__name__}')
+
+    if not url.strip():
+        raise ValueError('DATABASE_URL cannot be empty')
+
+    return url
+
+DATABASE_URL = get_database_url()
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL)
 }
@@ -344,7 +357,8 @@ CORS_ALLOWED_ORIGINS = config(
 TASK_STATUS_CHOICES = [
     ('todo', 'To Do'),
     ('in_progress', 'In Progress'),
-    ('review', 'In Review'),
+    ('in_review', 'In Review'),
+    ('blocked', 'Blocked'),
     ('done', 'Done'),
     ('cancelled', 'Cancelled'),
 ]

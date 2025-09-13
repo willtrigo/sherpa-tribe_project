@@ -1,0 +1,17 @@
+{
+  "reportLineTooLong": "none",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "executionEnvironments": [
+    {
+      "root": "django_backend"
+    }
+  ],
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "strictListInference": false,
+  "strictDictionaryInference": false,
+  "strictSetInference": false
+}
