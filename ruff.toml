@@ -1,23 +1,68 @@
 line-length = 88
+target-version = "py312"
 
 [lint]
 select = [
-    "E4",   # Import errors
-    "E7",   # Statement errors
-    "E9",   # Runtime errors
+    "E",    # Pycodestyle errors
     "F",    # Pyflakes
-	"I",    # Import
+    "I",    # Import order (isort)
     "B",    # flake8-bugbear
-	"W",    # whitespace
+    "W",    # Pycodestyle warnings
+    "D",    # pydocstyle (docstrings)
+    "UP",   # pyupgrade
+    "C4",   # flake8-comprehensions
+    "RUF",  # Ruff-specific rules
+    "N",    # pep8-naming
+    "S",    # flake8-bandit (security)
+    "T20",  # flake8-print
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
 ]
 
 ignore = [
-    "E501", # Line too long (handled by formatter)
+    "E501",  # Line too long (handled by formatter)
+    "D107",  # Missing docstring in __init__
+    "D105",  # Missing docstring in magic method
+    "D203",  # 1 blank line required before class docstring (conflicts with D211)
+    "D212",  # Multi-line docstring summary should start at the first line (conflicts with D213)
+    "S101",  # Use of assert detected (common in Django/tests)
+    "S311",  # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "T201",  # print found (allow print statements)
 ]
 
+# Per-file configuration
+[lint.per-file-ignores]
+"*/migrations/*" = ["D", "N", "RUF012"]  # Ignore docs/naming in migrations
+"*/tests/*" = ["S101", "D"]  # Allow asserts and ignore docs in tests
+"manage.py" = ["T201"]  # Allow prints in management commands
+"*/settings/*" = ["F405", "F403"]  # Allow star imports in settings
+
+# Import sorting configuration
+[lint.isort]
+known-first-party = ["django_backend"]
+split-on-trailing-comma = true
+force-single-line = false
+lines-between-types = 1
+lines-after-imports = 2
+
+# Docstring configuration
+[lint.pydocstyle]
+convention = "google"
+
+# Bugbear configuration
+[lint.flake8-bugbear]
+extend-immutable-calls = ["frozenset", "tuple", "django.conf.settings"]
+
+# Naming conventions for Django
+[lint.pep8-naming]
+classmethod-decorators = ["classmethod", "django.utils.decorators.classproperty"]
+staticmethod-decorators = ["staticmethod"]
+
+# Formatting configuration
 [format]
 quote-style = "single"
 line-ending = "auto"
 skip-magic-trailing-comma = false
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
+indent-style = "space"

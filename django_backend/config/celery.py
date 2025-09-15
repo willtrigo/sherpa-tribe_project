@@ -5,13 +5,15 @@ This module configures Celery with Redis as broker and result backend,
 implements proper error handling, monitoring, and follows Django best practices.
 """
 
-import os
 import logging
-from typing import Dict, Any, Optional
+import os
+
+from typing import Any, Dict, Optional
 
 from celery import Celery, signals
 from celery.schedules import crontab
 from django.conf import settings
+
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.docker')
@@ -25,7 +27,7 @@ app = Celery('task_management_system')
 
 class CeleryConfig:
     """Celery configuration class with enterprise-grade settings."""
-    
+
     # Broker settings
     broker_url: str = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
     result_backend: str = os.environ.get('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
@@ -145,6 +147,7 @@ app.autodiscover_tasks()
 def setup_celery_logging(**kwargs) -> None:
     """Configure logging for Celery workers."""
     import logging.config
+
     from django.conf import settings
     
     if hasattr(settings, 'LOGGING'):
