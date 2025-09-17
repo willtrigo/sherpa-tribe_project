@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Enterprise Task Management System">
+    <meta name="author" content="Task Management System">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <title>{% block title %}Task Management System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="visually-hidden-focusable">Skip to main content</a>
+    
+    {% if user.is_authenticated %}
+    <!-- Navigation for authenticated users -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
+                <i class="bi bi-kanban me-2"></i>
+                <span class="fw-bold">TaskFlow</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}" href="{% url 'task_list' %}">
+                            <i class="bi bi-list-task me-1"></i>Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}" href="{% url 'task_create' %}">
+                            <i class="bi bi-plus-circle me-1"></i>New Task
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear me-1"></i>Admin
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'users:user_list' %}">
+                                <i class="bi bi-people me-2"></i>Users
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                <i class="bi bi-shield-check me-2"></i>Django Admin
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="get" action="{% url 'task_list' %}" role="search">
+                    <div class="input-group">
+                        <input class="form-control form-control-sm" type="search" name="search" placeholder="Search tasks..." aria-label="Search" value="{{ request.GET.search }}">
+                        <button class="btn btn-outline-light btn-sm" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- User Menu -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span class="d-none d-sm-inline">{{ user.get_full_name|default:user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <h6 class="dropdown-header">
+                                <i class="bi bi-person me-2"></i>{{ user.get_full_name|default:user.username }}
+                            </h6>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'users:profile' %}">
+                                <i class="bi bi-person-gear me-2"></i>Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'users:settings' %}">
+                                <i class="bi bi-sliders me-2"></i>Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'authentication:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div class="container-fluid mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'error' %}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="bi bi-exclamation-triangle me-2"></i>
+            {% elif message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main id="main-content" class="{% if user.is_authenticated %}container-fluid py-4{% else %}d-flex align-items-center min-vh-100{% endif %}">
+        {% if user.is_authenticated %}
+        <div class="row">
+            <!-- Sidebar for larger screens -->
+            <aside class="col-lg-2 d-none d-lg-block">
+                <div class="card shadow-sm">
+                    <div class="card-body p-3">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-filter me-2"></i>Quick Filters
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'task_list' %}?status=pending" class="btn btn-outline-primary btn-sm text-start">
+                                <i class="bi bi-clock me-2"></i>Pending Tasks
+                            </a>
+                            <a href="{% url 'task_list' %}?status=in_progress" class="btn btn-outline-warning btn-sm text-start">
+                                <i class="bi bi-play-circle me-2"></i>In Progress
+                            </a>
+                            <a href="{% url 'task_list' %}?status=completed" class="btn btn-outline-success btn-sm text-start">
+                                <i class="bi bi-check-circle me-2"></i>Completed
+                            </a>
+                            <a href="{% url 'task_list' %}?priority=high" class="btn btn-outline-danger btn-sm text-start">
+                                <i class="bi bi-exclamation-triangle me-2"></i>High Priority
+                            </a>
+                            <a href="{% url 'task_list' %}?assigned_to={{ user.id }}" class="btn btn-outline-info btn-sm text-start">
+                                <i class="bi bi-person-check me-2"></i>My Tasks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task Stats Widget -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body p-3">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-bar-chart me-2"></i>Quick Stats
+                        </h6>
+                        <div class="row text-center">
+                            <div class="col-12 mb-2">
+                                <div class="bg-light p-2 rounded">
+                                    <div class="h5 mb-0 text-primary">{{ user.assigned_tasks.count }}</div>
+                                    <small class="text-muted">Assigned</small>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <div class="bg-light p-2 rounded">
+                                    <div class="h5 mb-0 text-success">{{ user.assigned_tasks.filter.status='completed'.count }}</div>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <div class="col-lg-10">
+                {% block breadcrumb %}{% endblock %}
+                
+                {% block page_header %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
+                    {% block page_actions %}{% endblock %}
+                </div>
+                {% endblock %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+        {% else %}
+        <!-- Unauthenticated layout -->
+        <div class="container">
+            {% block auth_content %}{% endblock %}
+        </div>
+        {% endif %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="{% if user.is_authenticated %}mt-5 py-4 bg-light border-top{% else %}position-fixed bottom-0 w-100 py-2 bg-light border-top{% endif %}">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        &copy; {% now "Y" %} Task Management System. 
+                        {% if debug %}
+                        <span class="badge bg-warning text-dark ms-2">DEBUG MODE</span>
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        Version 1.0.0 | 
+                        <a href="#" class="text-decoration-none">Support</a> | 
+                        <a href="#" class="text-decoration-none">Documentation</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 9999;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- HTMX for dynamic interactions -->
+    <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // CSRF Token setup for AJAX requests
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        // Global error handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+            
+            // Loading state for forms
+            const forms = document.querySelectorAll('form[data-loading="true"]');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                    }
+                });
+            });
+            
+            // Confirmation dialogs
+            const confirmButtons = document.querySelectorAll('[data-confirm]');
+            confirmButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const message = button.dataset.confirm || 'Are you sure?';
+                    if (!confirm(message)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            });
+            
+            // Toast notifications
+            const toastElements = document.querySelectorAll('.toast');
+            toastElements.forEach(toastEl => {
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+        
+        // Utility function to show loading overlay
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('d-none');
+        }
+        
+        // Utility function to hide loading overlay
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('d-none');
+        }
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'auto';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
+</body>
+</html>

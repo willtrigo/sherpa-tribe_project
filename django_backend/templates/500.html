@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Server Error - Task Management System{% endblock title %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .error-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        padding: 3rem 2rem;
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+        margin: 2rem;
+    }
+    
+    .error-icon {
+        font-size: 5rem;
+        color: #dc3545;
+        margin-bottom: 1.5rem;
+        display: block;
+    }
+    
+    .error-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .error-subtitle {
+        font-size: 1.25rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+    
+    .error-description {
+        color: #868e96;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+    
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .error-details {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .error-code {
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        color: #6c757d;
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+        border-left: 4px solid #dc3545;
+    }
+    
+    @media (max-width: 768px) {
+        .error-title {
+            font-size: 2rem;
+        }
+        
+        .error-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .error-card {
+            padding: 2rem 1.5rem;
+        }
+        
+        .error-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+            max-width: 200px;
+        }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <span class="error-icon pulse" aria-hidden="true">⚠️</span>
+        
+        <h1 class="error-title">500</h1>
+        <h2 class="error-subtitle">Internal Server Error</h2>
+        
+        <p class="error-description">
+            We're experiencing some technical difficulties on our end. 
+            Our development team has been automatically notified and is working to resolve this issue.
+        </p>
+        
+        <div class="error-actions">
+            <a href="{% url 'tasks:task_list' %}" class="btn btn-primary">
+                <span>🏠</span>
+                Return to Tasks
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <span>←</span>
+                Go Back
+            </a>
+        </div>
+        
+        {% if debug %}
+        <div class="error-details">
+            <h4 style="color: #dc3545; margin-bottom: 1rem;">Development Information</h4>
+            <div class="error-code">
+                <strong>Error ID:</strong> {{ request_id|default:"N/A" }}<br>
+                <strong>Timestamp:</strong> {% now "Y-m-d H:i:s T" %}<br>
+                <strong>Path:</strong> {{ request.path|default:"Unknown" }}<br>
+                <strong>Method:</strong> {{ request.method|default:"Unknown" }}
+            </div>
+            {% if exception %}
+            <div class="error-code">
+                <strong>Exception:</strong> {{ exception }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef;">
+            <p style="color: #6c757d; font-size: 0.875rem; margin: 0;">
+                If this problem persists, please contact our support team with the error details above.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh functionality (optional)
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'btn btn-outline-primary mt-3';
+        refreshButton.innerHTML = '<span>🔄</span> Try Again';
+        refreshButton.onclick = function() {
+            window.location.reload();
+        };
+        
+        // Add refresh button after a delay
+        setTimeout(() => {
+            const actions = document.querySelector('.error-actions');
+            if (actions) {
+                actions.appendChild(refreshButton);
+            }
+        }, 3000);
+        
+        // Log error for analytics (if analytics service is available)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'exception', {
+                'description': '500 Internal Server Error',
+                'fatal': false
+            });
+        }
+        
+        // Report to error tracking service (placeholder for production)
+        if (typeof Sentry !== 'undefined') {
+            Sentry.captureMessage('500 Error Page Displayed', 'error');
+        }
+    });
+</script>
+{% endblock extra_js %}
