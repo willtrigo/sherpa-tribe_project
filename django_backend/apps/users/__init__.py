@@ -23,21 +23,21 @@ from django.apps import AppConfig
 class UsersConfig(AppConfig):
     """
     Configuration class for the users application.
-    
+
     Handles app-specific configuration including:
     - Auto field configuration
     - Signal registration
     - App initialization tasks
     """
-    
+
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.users'
     verbose_name = 'User Management'
-    
+
     def ready(self) -> None:
         """
         Perform initialization tasks when the app is ready.
-        
+
         This method is called when Django has loaded all models and is ready
         to handle requests. It's the appropriate place to register signals
         and perform other initialization tasks.
@@ -64,8 +64,8 @@ USER_PROFILE_CACHE_PREFIX = 'user_profile:'
 
 # Export commonly used items for easier imports
 __all__ = [
-    'UsersConfig',
+    'TEAM_CACHE_PREFIX',
     'USER_CACHE_TIMEOUT',
-    'TEAM_CACHE_PREFIX', 
     'USER_PROFILE_CACHE_PREFIX',
+    'UsersConfig',
 ]
